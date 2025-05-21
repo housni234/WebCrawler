@@ -29,12 +29,12 @@ class HackerNewsCrawler {
         const response = await axios.get(this.url);
         const $ = cheerio.load(response.data)
 
-        $(".athing").each((i, e) => {
+        $(".athing").each((i, el) => {
             if (i >= 30) return
 
             // get the rank and title
             const rank = $(el).find(".rank").text().replace(",", "");
-            const title = $(el).find("titleline a").text();
+            const title = $(el).find(".titleline a").text();
 
             // get the subtext row
             const subtext = $(el).next().find(".subtext");
@@ -51,11 +51,47 @@ class HackerNewsCrawler {
             this.entries.push(new HackerNewsEntry(rank, title, points, comments));
 
 
-        })
+        });
 
     }
 
+    // Filter entries based on word count
+    filterByWordCount(moreThanFive) {
+        return this.entries.filter(entry => {
+            const count = entry.getWordCount();
+            return moreThanFive ? count > 5 : count <= 5;
+        });
+    }
+
+    // Sort entries by key points and comments
+    sortByKey(entries, key) {
+        return [...entries].sort((a, b) => b[key] - a[key]);
+    }
+
+    // Print a table to the console
+    printTable(entries, title) {
+        console.log(`\n=== ${title} ===`);
+        console.table(entries.map(e => ({
+            Rank: e.rank,
+            Title: e.title,
+            Points: e.points,
+            Comments: e.comments
+        })));
+    }
+
+    async run() {
+        await this.fetchData();
+
+        const morethan5 = this.filterByWordCount(true)
+        const lessthan5 = this.filterByWordCount(false)
+
+        this.printTable(morethan5, " more than 5")
+        this.printTable(lessthan5, " less than 5")
+    }
 }
-const crawler = new HackerNewsCrawler("https://news.ycombinator.com/")
-crawler.fetchData()
+(async () => {
+    const crawler = new HackerNewsCrawler("https://news.ycombinator.com/")
+    await crawler.run()
+
+})();
 
