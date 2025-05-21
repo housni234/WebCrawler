@@ -79,16 +79,24 @@ class HackerNewsCrawler {
         })));
     }
 
+    //
     async run() {
         await this.fetchData();
 
-        const morethan5 = this.filterByWordCount(true)
-        const lessthan5 = this.filterByWordCount(false)
+        // print entries
+        this.printTable(this.entries, "All Entries");
 
-        this.printTable(morethan5, " more than 5")
-        this.printTable(lessthan5, " less than 5")
+        // filter and sort subsets
+        const moreThan5 = this.sortByKey(this.filterByWordCount(true), 'comments');
+        const lessThanOrEqualTo5 = this.sortByKey(this.filterByWordCount(false), 'points');
+
+        // print the subsets
+        this.printTable(moreThan5, "More than 5 words (sorted by comments)");
+        this.printTable(lessThanOrEqualTo5, "5 words or less (sorted by points)");
     }
 }
+
+// Self-invoking function to create and run the crawler
 (async () => {
     const crawler = new HackerNewsCrawler("https://news.ycombinator.com/")
     await crawler.run()
