@@ -1,4 +1,4 @@
-//importing axios and cheerio depe
+//importing axios and cheerio 
 const axios = require("axios");
 const cheerio = require("cheerio");
 
@@ -26,15 +26,33 @@ class HackerNewsCrawler {
 
     // fetching data
     async fetchData() {
-        try {
-            const response = await axios.get(this.url);
-            const $ = cheerio.load(response.data)
+        const response = await axios.get(this.url);
+        const $ = cheerio.load(response.data)
 
-            const title = $(".athing").first().find(".titleline a ").text()
-            console.log("first title: ", title)
-        } catch (error) {
-            console.error("faiiiiled", error.message)
-        }
+        $(".athing").each((i, e) => {
+            if (i >= 30) return
+
+            // get the rank and title
+            const rank = $(el).find(".rank").text().replace(",", "");
+            const title = $(el).find("titleline a").text();
+
+            // get the subtext row
+            const subtext = $(el).next().find(".subtext");
+
+            // get points and parse to integer
+            const points = parseInt(subtext.find(".score").text().replace(" points", "")) || 0;
+
+            // create comment count from the last <a> element
+            const commentsText = subtext.find("a").last().text();
+            const commentsMatch = commentsText.match(/(\d+)\scomment/);
+            const comments = commentsMatch ? parseInt(commentsMatch[1]) : 0;
+
+            // create a new entry object and add to the array
+            this.entries.push(new HackerNewsEntry(rank, title, points, comments));
+
+
+        })
+
     }
 
 }
